@@ -1,24 +1,36 @@
 from mtcnn import MTCNN
 import cv2
 
-def faceReader(imageAddress):
-    img = cv2.imread(imageAddress)
-    img = cv2.cvtColor(img , cv2.COLOR_BGR2RGB)
+cap = cv2.VideoCapture('testImages/maryam.mp4')
 
-    detector = MTCNN()
-    out = detector.detect_faces(img)
+if (cap.isOpened()== False): 
+  print("Error opening video stream or file")
 
-    for i in range(len(out)):
-        x , y , w , h = out[i]['box']
-        kp = out[i]['keypoints']
-        for _ , value in kp.items():
-            cv2.circle(img , value , 3 , (0,0,255) , -1)
-        cv2.rectangle(img , (x , y) , (x+w , y+h) , (0,255,0) , 2)
-        
-    return img
+detector = MTCNN()
 
-img = faceReader('testImages/team.jpg')
+while (cap.isOpened()):
+    ret , img = cap.read()
+    
+    if ret == True:
+    
+        if img is None:break
+    
+        img = cv2.cvtColor(img , cv2.COLOR_RGB2BGR)
+    
+        try:
+    
+            out = detector.detect_faces(img)
+    
+            x , y , w , h = out['box']
+    
+            cv2.rectangle(img , (x , y) , (x+w , y+h) , (0 , 255 , 0) , 2)
+            cv2.imshow('face' , img)
+            if cv2.waitKey(30) == ord('q'):
+                break
+            
+        except:
+            pass
+       
+cap.release()
 
-cv2.imshow('image' , img)
-cv2.waitKey(0)
 cv2.destroyAllWindows()
