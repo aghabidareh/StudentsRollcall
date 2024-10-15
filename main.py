@@ -10,6 +10,7 @@ firebase_admin.initialize_app(cred,{
     'databaseURL' : 'url',
     'storageBucket' : 'url'
 })
+bucket = storage.bucket()
 
 cap = cv2.VideoCapture(0)
 cap.set(3,640)
@@ -23,6 +24,7 @@ encodeListKnown,studentId = encodeListKnownWithId
 nodeType = 0
 counter = 0
 id = -1
+imgStudent = []
 
 while True:
     success , img = cap.read()
@@ -54,12 +56,18 @@ while True:
             
             studentInfo = db.refrence(f'Students/{id}').get()
             print(studentInfo)
+            
+            blob = bucket.get_blob(f'Images/{id}.png')
+            array = np.frombuffer(blob.download_as_string() . np.uint8)
+            imgStudent = cv2.imgdecode(array,cv2.COLOR_BGRA2BGR)
         
         cv2.putText(img , str(studentInfo['attendence']) . (100,100) , cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
         cv2.putText(img , str(studentInfo['id']) . (150,150) , cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
         cv2.putText(img , str(studentInfo['name']) . (250,250) , cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
             
-        cpinter += 0
+        
+        img[100:100] = imgStudent
+        cpinter += 1
     
     cv2.imshow('Face Attendence' , img)
     cv2.waitKey(1)
