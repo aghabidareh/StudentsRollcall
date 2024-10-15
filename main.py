@@ -1,4 +1,15 @@
 import cv2 
+import numpy as np
+
+import firebase_admin
+from firebase_admin import credentials , storage
+from firebase_admin import db
+
+cred = credentials.Credentials('databaseServices.json')
+firebase_admin.initialize_app(cred,{
+    'databaseURL' : 'url',
+    'storageBucket' : 'url'
+})
 
 cap = cv2.VideoCapture(0)
 cap.set(3,640)
@@ -9,6 +20,9 @@ encodeListKnownWithId = pickle.load(file)
 file.close()
 encodeListKnown,studentId = encodeListKnownWithId
 
+nodeType = 0
+counter = 0
+id = -1
 
 while True:
     success , img = cap.read()
@@ -30,6 +44,22 @@ while True:
             y1,x2,y2,x1 = y1*4,x2*4,y2*4,x1*4
             bbox = x1,y1,x2,y2
             img = cvzone.cornerRect(img,bbox,rt=0)
+            id = studentId[matchIndex]            
+            if counter == 0:
+                counter = 1
+                nodeType = 1
+    if counter != 0:
+        
+        if counter == 1:
+            
+            studentInfo = db.refrence(f'Students/{id}').get()
+            print(studentInfo)
+        
+        cv2.putText(img , str(studentInfo['attendence']) . (100,100) , cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
+        cv2.putText(img , str(studentInfo['id']) . (150,150) , cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
+        cv2.putText(img , str(studentInfo['name']) . (250,250) , cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
+            
+        cpinter += 0
     
     cv2.imshow('Face Attendence' , img)
     cv2.waitKey(1)
