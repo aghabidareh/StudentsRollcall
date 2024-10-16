@@ -60,14 +60,31 @@ while True:
             blob = bucket.get_blob(f'Images/{id}.png')
             array = np.frombuffer(blob.download_as_string() . np.uint8)
             imgStudent = cv2.imgdecode(array,cv2.COLOR_BGRA2BGR)
-        
-        cv2.putText(img , str(studentInfo['attendence']) . (100,100) , cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
-        cv2.putText(img , str(studentInfo['id']) . (150,150) , cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
-        cv2.putText(img , str(studentInfo['name']) . (250,250) , cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
+            
+            ref = db.refrence(f'Students/{id}')
+            studentInfo['total_attendence'] += 1
+            ref.child('total_attendence').set(studentInfo['total_attendence'])
             
         
-        img[100:100] = imgStudent
+        if 10<counter<20:
+            nodeType = 2
+            
+        
+        if counter <= 10:
+        
+            cv2.putText(img , str(studentInfo['attendence']) . (100,100) , cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
+            cv2.putText(img , str(studentInfo['id']) . (150,150) , cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
+            cv2.putText(img , str(studentInfo['name']) . (250,250) , cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
+            
+        
+            img[100:100] = imgStudent
         cpinter += 1
+        
+        if counter>=20:
+            counter = 0
+            nodeType = 0
+            studentInfo = []
+            imgStudent = []
     
     cv2.imshow('Face Attendence' , img)
     cv2.waitKey(1)
