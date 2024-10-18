@@ -88,3 +88,6 @@ while True:
     
     cv2.imshow('Face Attendence' , img)
     cv2.waitKey(1)
+
+
+#be careful of yourself
