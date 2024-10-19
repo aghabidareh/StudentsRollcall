@@ -72,13 +72,13 @@ while True:
         
         if counter <= 10:
         
-            cv2.putText(img , str(studentInfo['attendence']) . (100,100) , cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
-            cv2.putText(img , str(studentInfo['id']) . (150,150) , cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
-            cv2.putText(img , str(studentInfo['name']) . (250,250) , cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
+            cv2.putText(img , str(studentInfo['attendence']) , (100,100) , cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
+            cv2.putText(img , str(studentInfo['id']) , (150,150) , cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
+            cv2.putText(img , str(studentInfo['name']) , (250,250) , cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
             
         
             img[100:100] = imgStudent
-        cpinter += 1
+        counter += 1
         
         if counter>=20:
             counter = 0
@@ -88,3 +88,6 @@ while True:
     
     cv2.imshow('Face Attendence' , img)
     cv2.waitKey(1)
+
+
+# be careful of yourself
