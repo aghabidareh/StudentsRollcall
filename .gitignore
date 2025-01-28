@@ -162,3 +162,4 @@ cython_debug/
 #.idea/
 dlib_face_recognition_resnet_model_v1*
 shape_predictor_68_face_landmarks*
+video.mp4
