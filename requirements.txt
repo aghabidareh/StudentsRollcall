@@ -1,7 +1,12 @@
-numpy==2.2.1
-opencv-python==4.10.0.84
-pandas==2.2.3
-python-dateutil==2.9.0.post0
-pytz==2024.2
-six==1.17.0
-tzdata==2024.2
+Package         Version
+--------------- -----------
+dlib            19.24.99
+numpy           2.0.2
+opencv-python   4.11.0.86
+pandas          2.2.3
+pip             25.0
+python-dateutil 2.9.0.post0
+pytz            2024.2
+setuptools      49.2.1
+six             1.17.0
+tzdata          2025.1

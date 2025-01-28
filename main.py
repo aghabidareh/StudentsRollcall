@@ -1,8 +1,7 @@
-import dlib
 import cv2
 import pickle
 import pandas as pd
-import numpy as np
+import face_recognition
 
 def markAttendance():
     with open('FaceEncoding.pickle', 'rb') as f:
@@ -11,10 +10,6 @@ def markAttendance():
     attendanceFile = 'attendance.xlsx'
     allStudents = set(knownFaceNames)
     studentsMarked = set()
-
-    faceDetector = dlib.get_frontal_face_detector()
-    shapePredictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
-    faceRecognizer = dlib.face_recognition_model_v1('dlib_face_recognition_resnet_model_v1.dat')
 
     videoCapture = cv2.VideoCapture(0)
 
@@ -25,24 +20,20 @@ def markAttendance():
             break
 
         rgbFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        faces = faceDetector(rgbFrame)
+        faceLocations = face_recognition.face_locations(rgbFrame)
+        faceEncodings = face_recognition.face_encodings(rgbFrame, faceLocations)
 
-        for face in faces:
-            shape = shapePredictor(rgbFrame, face)
-            faceEncoding = faceRecognizer.compute_face_descriptor(rgbFrame, shape)
-
-            distances = [np.linalg.norm(np.array(faceEncoding) - np.array(knownFace)) for knownFace in knownFaceEncodings]
-            minDistance = min(distances) if distances else float('inf')
-            threshold = 0.6
+        for faceEncoding, faceLocation in zip(faceEncodings, faceLocations):
+            matches = face_recognition.compare_faces(knownFaceEncodings, faceEncoding)
             name = "Unknown"
 
-            if minDistance < threshold:
-                bestMatchIndex = distances.index(minDistance)
-                name = knownFaceNames[bestMatchIndex]
+            if True in matches:
+                firstMatchIndex = matches.index(True)
+                name = knownFaceNames[firstMatchIndex]
                 if name not in studentsMarked:
                     studentsMarked.add(name)
 
-            left, top, right, bottom = face.left(), face.top(), face.right(), face.bottom()
+            top, right, bottom, left = faceLocation
             cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
             cv2.putText(frame, name, (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255), 2)
 
