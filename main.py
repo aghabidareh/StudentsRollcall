@@ -13,11 +13,7 @@ def markAttendance():
     allStudents = set(knownFaceNames)
     studentsMarked = {}
 
-    if os.path.exists(attendanceFile):
-        attendanceDF = pd.read_excel(attendanceFile)
-        studentRecords = {row['Name']: row for _, row in attendanceDF.iterrows()}
-    else:
-        studentRecords = {}
+    studentRecords = {}
 
     videoCapture = cv2.VideoCapture(0)
 
@@ -36,7 +32,7 @@ def markAttendance():
             bestMatchIndex = faceDistances.argmin()
             bestMatchDistance = faceDistances[bestMatchIndex]
 
-            threshold = 0.5
+            threshold = 0.55
             name = "Unknown"
 
             if bestMatchDistance < threshold:
