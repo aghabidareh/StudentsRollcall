@@ -11,7 +11,7 @@ def markAttendance():
     allStudents = set(knownFaceNames)
     studentsMarked = set()
 
-    videoCapture = cv2.VideoCapture(0)
+    videoCapture = cv2.VideoCapture('video.mp4')
 
     while True:
         ret, frame = videoCapture.read()
@@ -24,12 +24,15 @@ def markAttendance():
         faceEncodings = face_recognition.face_encodings(rgbFrame, faceLocations)
 
         for faceEncoding, faceLocation in zip(faceEncodings, faceLocations):
-            matches = face_recognition.compare_faces(knownFaceEncodings, faceEncoding)
+            faceDistances = face_recognition.face_distance(knownFaceEncodings, faceEncoding)
+            bestMatchIndex = faceDistances.argmin()
+            bestMatchDistance = faceDistances[bestMatchIndex]
+
+            threshold = 0.5
             name = "Unknown"
 
-            if True in matches:
-                firstMatchIndex = matches.index(True)
-                name = knownFaceNames[firstMatchIndex]
+            if bestMatchDistance < threshold:
+                name = knownFaceNames[bestMatchIndex]
                 if name not in studentsMarked:
                     studentsMarked.add(name)
 
