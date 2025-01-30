@@ -2,6 +2,8 @@ import cv2
 import pickle
 import pandas as pd
 import face_recognition
+import os
+from datetime import datetime
 
 def markAttendance():
     with open('FaceEncoding.pickle', 'rb') as f:
@@ -9,9 +11,15 @@ def markAttendance():
 
     attendanceFile = 'attendance.xlsx'
     allStudents = set(knownFaceNames)
-    studentsMarked = set()
+    studentsMarked = {}
 
-    videoCapture = cv2.VideoCapture('video.mp4')
+    if os.path.exists(attendanceFile):
+        attendanceDF = pd.read_excel(attendanceFile)
+        studentRecords = {row['Name']: row for _, row in attendanceDF.iterrows()}
+    else:
+        studentRecords = {}
+
+    videoCapture = cv2.VideoCapture(0)
 
     while True:
         ret, frame = videoCapture.read()
@@ -33,12 +41,19 @@ def markAttendance():
 
             if bestMatchDistance < threshold:
                 name = knownFaceNames[bestMatchIndex]
-                if name not in studentsMarked:
-                    studentsMarked.add(name)
+
+                if name not in studentRecords:
+                    studentRecords[name] = {'Name': name, 'First_Registration': datetime.now(), 'Last_Registration': datetime.now()}
+                else:
+                    studentRecords[name]['Last_Registration'] = datetime.now()
+
+                studentsMarked[name] = studentRecords[name]
+
+            s = f'{name} , {bestMatchDistance:.2f}'
 
             top, right, bottom, left = faceLocation
             cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
-            cv2.putText(frame, name, (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255), 2)
+            cv2.putText(frame, s, (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255), 2)
 
         cv2.imshow('Attendance System', frame)
 
@@ -51,7 +66,15 @@ def markAttendance():
     attendanceData = []
     for student in allStudents:
         status = "Present" if student in studentsMarked else "Absent"
-        attendanceData.append({'Name': student, 'Status': status})
+        first_registration = studentRecords[student]['First_Registration'] if student in studentRecords else None
+        last_registration = studentRecords[student]['Last_Registration'] if student in studentRecords else None
+
+        attendanceData.append({
+            'Name': student,
+            'Status': status,
+            'First_Registration': first_registration,
+            'Last_Registration': last_registration
+        })
 
     attendanceDF = pd.DataFrame(attendanceData)
     attendanceDF.to_excel(attendanceFile, index=False)
