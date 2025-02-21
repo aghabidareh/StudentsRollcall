@@ -1,81 +1,130 @@
 import os
 import cv2
+import numpy as np
 import face_recognition
 import pandas as pd
 from datetime import datetime
+from threading import Thread
 
-STUDENTS_DIR = "students"
-OUTPUT_EXCEL = "attendance.xlsx"
-UNKNOWN_NAME = "Unknown"
-THRESHOLD = 0.5
+class VideoStream:
+    def __init__(self, src=0):
+        self.stream = cv2.VideoCapture(src)
+        self.grabbed, self.frame = self.stream.read()
+        self.stopped = False
 
-def load_student_data():
-    known_faces = []
-    known_names = []
-    
-    for filename in os.listdir(STUDENTS_DIR):
-        if filename.startswith('.'):
-            continue
-        name = os.path.splitext(filename)[0]
-        image_path = os.path.join(STUDENTS_DIR, filename)
-        image = face_recognition.load_image_file(image_path)
-        encoding = face_recognition.face_encodings(image)[0]
-        known_faces.append(encoding)
-        known_names.append(name)
-    
-    return known_faces, known_names
+    def start(self):
+        Thread(target=self.update, args=()).start()
+        return self
 
-def save_to_excel(attendance_dict):
-    df = pd.DataFrame.from_dict(attendance_dict, orient='index',
-                               columns=['Status', 'First Seen', 'Last Seen'])
-    df.to_excel(OUTPUT_EXCEL)
-    print(f"Attendance saved to {OUTPUT_EXCEL}")
+    def update(self):
+        while not self.stopped:
+            self.grabbed, self.frame = self.stream.read()
+
+    def read(self):
+        return self.frame
+
+    def stop(self):
+        self.stopped = True
+
+class AttendanceSystem:
+    def __init__(self, students_folder="students", threshold=0.6):
+        self.students_folder = students_folder
+        self.threshold = threshold
+        self.known_encodings = {}
+        self.attendance = {}
+        self.load_student_encodings()
+        
+    def load_student_encodings(self):
+        for filename in os.listdir(self.students_folder):
+            if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+                name = os.path.splitext(filename)[0]
+                image_path = os.path.join(self.students_folder, filename)
+                image = face_recognition.load_image_file(image_path)
+                encodings = face_recognition.face_encodings(image)
+                if encodings:
+                    self.known_encodings[name] = encodings[0]
+                else:
+                    print(f"⚠️ No face detected in {filename}")
+
+    def process_frame(self, frame):
+        small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5) 
+        rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
+        
+        face_locations = face_recognition.face_locations(rgb_small_frame, model="hog") 
+        face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
+        
+        for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
+            name = self.recognize_face(face_encoding)
+            self.update_attendance(name)
+            self.draw_face_box(frame, top * 2, right * 2, bottom * 2, left * 2, name) 
+        
+        return frame
+
+    def recognize_face(self, face_encoding):
+        distances = face_recognition.face_distance(
+            list(self.known_encodings.values()), 
+            face_encoding
+        )
+        min_index = np.argmin(distances)
+        min_distance = distances[min_index]
+        
+        if min_distance < self.threshold:
+            return list(self.known_encodings.keys())[min_index]
+        return "Unknown"
+
+    def update_attendance(self, name):
+        if name != "Unknown":
+            now = datetime.now()
+            if name not in self.attendance:
+                self.attendance[name] = {
+                    'status': 'Present',
+                    'first_seen': now,
+                    'last_seen': now
+                }
+            else:
+                self.attendance[name]['last_seen'] = now
+
+    def draw_face_box(self, frame, top, right, bottom, left, name):
+        cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
+        cv2.putText(frame, name, (left + 6, top - 6), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+
+    def generate_report(self):
+        all_students = set(self.known_encodings.keys())
+        present_students = set(self.attendance.keys())
+        absent_students = all_students - present_students
+        
+        data = []
+        for student in all_students:
+            status = 'Present' if student in present_students else 'Absent'
+            record = {
+                'Name': student,
+                'Status': status,
+                'First_Seen': self.attendance.get(student, {}).get('first_seen', 'N/A'),
+                'Last_Seen': self.attendance.get(student, {}).get('last_seen', 'N/A')
+            }
+            data.append(record)
+        
+        df = pd.DataFrame(data)
+        df.to_excel("attendance.xlsx", index=False)
+        print("✅ Report generated successfully!")
 
 def main():
-    known_faces, known_names = load_student_data()
-    video_capture = cv2.VideoCapture(0)
-    attendance = {}
-    
-    while True:
-        ret, frame = video_capture.read()
-        if not ret:
-            break
+    system = AttendanceSystem()
+    video_stream = VideoStream(src=0).start() 
 
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        face_locations = face_recognition.face_locations(rgb_frame)
-        face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
+    try:
+        while True:
+            frame = video_stream.read()
+            processed_frame = system.process_frame(frame)
+            cv2.imshow('Attendance System', processed_frame)
 
-        for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
-            matches = face_recognition.compare_faces(known_faces, face_encoding, THRESHOLD)
-            name = UNKNOWN_NAME
-            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-            if True in matches:
-                first_match_index = matches.index(True)
-                name = known_names[first_match_index]
-
-                if name not in attendance:
-                    attendance[name] = ['Present', current_time, current_time]
-                else:
-                    attendance[name][2] = current_time
-
-            cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
-            cv2.putText(frame, name, (left + 6, bottom - 6), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-
-        cv2.imshow('Face Recognition Attendance', frame)
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    video_capture.release()
-    cv2.destroyAllWindows()
-    
-    for name in known_names:
-        if name not in attendance:
-            attendance[name] = ['Absent', '-', '-']
-    
-    save_to_excel(attendance)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+    finally:
+        video_stream.stop()
+        cv2.destroyAllWindows()
+        system.generate_report()
 
 if __name__ == "__main__":
     main()
