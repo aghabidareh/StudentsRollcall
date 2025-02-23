@@ -27,7 +27,7 @@ class VideoStream:
         self.stopped = True
 
 class AttendanceSystem:
-    def __init__(self, students_folder="students", threshold=0.6):
+    def __init__(self, students_folder="students", threshold=0.5):
         self.students_folder = students_folder
         self.threshold = threshold
         self.known_encodings = {}
