@@ -25,3 +25,6 @@ class VideoStream:
 
     def read(self):
         return self.frame
+
+    def stop(self):
+        self.stopped = True
