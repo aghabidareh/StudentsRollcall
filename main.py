@@ -14,3 +14,7 @@ class VideoStream:
         self.stream = cv2.VideoCapture(src)
         self.grabbed, self.frame = self.stream.read()
         self.stopped = False
+
+    def start(self):
+        Thread(target=self.update, args=()).start()
+        return self
