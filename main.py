@@ -110,3 +110,8 @@ class AttendanceSystem:
                 }
             else:
                 self.attendance[name]['last_seen'] = now
+
+    def draw_face_box(self, frame, top, right, bottom, left, name):
+        cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
+        cv2.putText(frame, name, (left + 6, top - 6),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
