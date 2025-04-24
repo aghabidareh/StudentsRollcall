@@ -22,3 +22,6 @@ class VideoStream:
     def update(self):
         while not self.stopped:
             self.grabbed, self.frame = self.stream.read()
+
+    def read(self):
+        return self.frame
