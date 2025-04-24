@@ -51,3 +51,14 @@ class AttendanceSystem:
                     self.known_encodings[name] = encodings
                 else:
                     print(f"⚠️ Failed to process {filename}")
+
+    def get_image_embedding(self, image):
+        try:
+            inputs = self.processor(images=image, return_tensors="pt").to(self.device)
+            with torch.no_grad():
+                outputs = self.model(**inputs)
+            embedding = outputs.last_hidden_state.mean(dim=1).squeeze().cpu().numpy()
+            return embedding
+        except Exception as e:
+            print(f"Error processing image: {e}")
+            return None
