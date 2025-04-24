@@ -115,3 +115,23 @@ class AttendanceSystem:
         cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
         cv2.putText(frame, name, (left + 6, top - 6),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+
+    def generate_report(self):
+        all_students = set(self.known_encodings.keys())
+        present_students = set(self.attendance.keys())
+        absent_students = all_students - present_students
+
+        data = []
+        for student in all_students:
+            status = 'Present' if student in present_students else 'Absent'
+            record = {
+                'Name': student,
+                'Status': status,
+                'First_Seen': self.attendance.get(student, {}).get('first_seen', 'N/A'),
+                'Last_Seen': self.attendance.get(student, {}).get('last_seen', 'N/A')
+            }
+            data.append(record)
+
+        df = pd.DataFrame(data)
+        df.to_excel("attendance.xlsx", index=False)
+        print("✅ Report generated successfully!")
