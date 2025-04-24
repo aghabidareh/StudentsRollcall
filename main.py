@@ -9,6 +9,7 @@ from PIL import Image
 from transformers import AutoModel, AutoProcessor
 from torchvision import transforms
 
+
 class VideoStream:
     def __init__(self, src=0):
         self.stream = cv2.VideoCapture(src)
@@ -28,6 +29,7 @@ class VideoStream:
 
     def stop(self):
         self.stopped = True
+
 
 class AttendanceSystem:
     def __init__(self, students_folder="students", threshold=0.5):
@@ -136,6 +138,7 @@ class AttendanceSystem:
         df.to_excel("attendance.xlsx", index=False)
         print("✅ Report generated successfully!")
 
+
 def main():
     system = AttendanceSystem()
     video_stream = VideoStream(src=0).start()
@@ -152,6 +155,7 @@ def main():
         video_stream.stop()
         cv2.destroyAllWindows()
         system.generate_report()
+
 
 if __name__ == "__main__":
     main()
