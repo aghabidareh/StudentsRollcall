@@ -39,7 +39,7 @@ class AttendanceSystem:
         self.attendance = {}
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = AutoModel.from_pretrained("nomic-ai/nomic-embed-vision-v1.5" , trust_remote_code=True).to(self.device)
-        self.processor = AutoProcessor.from_pretrained("nomic-ai/nomic-embed-vision-v1.5" , trust_remote_code=True).to(self.device)
+        self.processor = AutoProcessor.from_pretrained("nomic-ai/nomic-embed-vision-v1.5" , trust_remote_code=True)
         self.load_student_encodings()
 
     def load_student_encodings(self):
