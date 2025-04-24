@@ -152,3 +152,6 @@ def main():
         video_stream.stop()
         cv2.destroyAllWindows()
         system.generate_report()
+
+if __name__ == "__main__":
+    main()
