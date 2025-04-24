@@ -82,3 +82,19 @@ class AttendanceSystem:
                 self.draw_face_box(frame, y * 2, (x + w) * 2, (y + h) * 2, x * 2, name)
 
         return frame
+
+    def recognize_face(self, face_encoding):
+        similarities = []
+        for name, known_encoding in self.known_encodings.items():
+            similarity = np.dot(face_encoding, known_encoding) / (
+                    np.linalg.norm(face_encoding) * np.linalg.norm(known_encoding)
+            )
+            similarities.append((name, similarity))
+
+        if not similarities:
+            return "Unknown"
+
+        best_match = max(similarities, key=lambda x: x[1])
+        if best_match[1] > self.threshold:
+            return best_match[0]
+        return "Unknown"
