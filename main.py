@@ -56,7 +56,7 @@ class AttendanceSystem:
 
     def get_image_embedding(self, image):
         try:
-            inputs = self.processor(images=image, return_tensors="np").to(self.device)
+            inputs = self.processor(images=image, return_tensors="pt").to(self.device)
             with torch.no_grad():
                 outputs = self.model(**inputs)
             embedding = outputs.last_hidden_state.mean(dim=1).squeeze().cpu().numpy()
