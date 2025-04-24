@@ -62,3 +62,23 @@ class AttendanceSystem:
         except Exception as e:
             print(f"Error processing image: {e}")
             return None
+
+    def process_frame(self, frame):
+        small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
+        rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
+
+        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+        gray = cv2.cvtColor(small_frame, cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+
+        for (x, y, w, h) in faces:
+            face_img = rgb_small_frame[y:y + h, x:x + w]
+            face_pil = Image.fromarray(face_img)
+            face_encoding = self.get_image_embedding(face_pil)
+
+            if face_encoding is not None:
+                name = self.recognize_face(face_encoding)
+                self.update_attendance(name)
+                self.draw_face_box(frame, y * 2, (x + w) * 2, (y + h) * 2, x * 2, name)
+
+        return frame
