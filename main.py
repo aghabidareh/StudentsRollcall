@@ -8,3 +8,6 @@ import torch
 from PIL import Image
 from transformers import AutoModel, AutoProcessor
 from torchvision import transforms
+
+class VideoStream:
+    pass
