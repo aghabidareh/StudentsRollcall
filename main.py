@@ -135,3 +135,20 @@ class AttendanceSystem:
         df = pd.DataFrame(data)
         df.to_excel("attendance.xlsx", index=False)
         print("✅ Report generated successfully!")
+
+def main():
+    system = AttendanceSystem()
+    video_stream = VideoStream(src=0).start()
+
+    try:
+        while True:
+            frame = video_stream.read()
+            processed_frame = system.process_frame(frame)
+            cv2.imshow('Attendance System', processed_frame)
+
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+    finally:
+        video_stream.stop()
+        cv2.destroyAllWindows()
+        system.generate_report()
