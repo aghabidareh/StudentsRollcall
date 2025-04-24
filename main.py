@@ -18,3 +18,7 @@ class VideoStream:
     def start(self):
         Thread(target=self.update, args=()).start()
         return self
+
+    def update(self):
+        while not self.stopped:
+            self.grabbed, self.frame = self.stream.read()
