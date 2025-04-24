@@ -98,3 +98,15 @@ class AttendanceSystem:
         if best_match[1] > self.threshold:
             return best_match[0]
         return "Unknown"
+
+    def update_attendance(self, name):
+        if name != "Unknown":
+            now = datetime.now()
+            if name not in self.attendance:
+                self.attendance[name] = {
+                    'status': 'Present',
+                    'first_seen': now,
+                    'last_seen': now
+                }
+            else:
+                self.attendance[name]['last_seen'] = now
