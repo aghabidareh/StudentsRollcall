@@ -30,4 +30,12 @@ class VideoStream:
         self.stopped = True
 
 class AttendanceSystem:
-    pass
+    def __init__(self, students_folder="students", threshold=0.5):
+        self.students_folder = students_folder
+        self.threshold = threshold
+        self.known_encodings = {}
+        self.attendance = {}
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model = AutoModel.from_pretrained("nomic-ai/nomic-embed-vision-v1.5").to(self.device)
+        self.processor = AutoProcessor.from_pretrained("nomic-ai/nomic-embed-vision-v1.5")
+        self.load_student_encodings()
