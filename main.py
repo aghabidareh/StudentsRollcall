@@ -28,3 +28,6 @@ class VideoStream:
 
     def stop(self):
         self.stopped = True
+
+class AttendanceSystem:
+    pass
